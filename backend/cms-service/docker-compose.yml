@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  cms-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"  # 애플리케이션 포트
+      - "5005:5005"  # 디버그 포트
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - SPRING_CLOUD_CONFIG_URI=http://config-service:8888
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-service:8761/eureka/
+    volumes:
+      - ./build/libs:/app  # 빌드된 JAR 파일 마운트
+    networks:
+      - egov-network
+
+networks:
+  egov-network:
+    driver: bridge

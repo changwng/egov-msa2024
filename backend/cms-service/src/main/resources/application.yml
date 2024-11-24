@@ -1,0 +1,64 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: cms-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8000/auth/realms/egov
+          jwk-set-uri: http://localhost:8000/auth/realms/egov/protocol/openid-connect/certs
+  cloud:
+    config:
+      enabled: false
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user-service/**
+          filters:
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+  r2dbc:
+    url: r2dbc:h2:mem:///cms_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+logging:
+  level:
+    org.egovframe.cloud.cmsservice: DEBUG
+    org.springframework.r2dbc.core: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh, health, beans, info
